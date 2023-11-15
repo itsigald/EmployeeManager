@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EM.Domain.Entities
 {
-    [Table("departements")]
+    [Table("departments")]
     public class Department : BaseEntity
     {
         [Column("name")]
         public string Name { get; set; } = string.Empty;
 
+        public virtual ICollection<Employee>? Employees { get; set; }
+
         [Column("manager_id")]
         public long? ManagerId { get; set; }
-
-        public virtual ICollection<Employee>? Employees { get; set; }
     }
 }

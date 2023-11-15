@@ -1,43 +1,43 @@
 ﻿using EM.Data;
 using EM.Domain.Entities;
 using EM.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace EM.Services
 {
     public class DepartmetsService : IDepartmetsService
     {
-        private readonly IRepository<EMContext> _repository;
+        private readonly Repository<EMContext> db;
 
         public DepartmetsService(IRepository<EMContext> repository)
         {
-            _repository = repository;
+            db = (Repository<EMContext>)repository;
         }
 
-        public void Add(Department entity)
+        public async Task Add(Department entity)
         {
             try
             {
-                _repository.Add<Department>(entity);
-                _repository.Save("Error on save Department entity");
-            }
-            catch (Exception)
+                db.Add<Department>(entity);
+                await db.SaveAync();
+            } 
+            catch(Exception)
             {
                 throw;
             }
         }
 
-        public void Delete(long id)
+        public async Task Delete(long id)
         {
             var entity = this.Get(id);
-
-            if(entity != null)
+            if (entity != null)
             {
-                _repository.Delete<Department>(entity);
+                await db.DeleteAsync<Department>(entity);
             }
             else
             {
-                throw new Exception($"The Department with id {id} dosen't exist");
+                throw new Exception("The item you ment to delete dosen't exist");
             }
         }
 
@@ -48,29 +48,30 @@ namespace EM.Services
 
         public IEnumerable<Department> Get()
         {
-            return _repository.GetList<Department>();
+            return db.GetList<Department>();
         }
 
         public Department? Get(long id)
         {
-            return _repository.Get<Department>(k => k.Id == id);
+            return db.Get<Department>(e => e.Id == id);
         }
 
         public IEnumerable<Department> GetBy(Expression<Func<Department, bool>> predicate)
         {
-            return _repository.GetList<Department>(predicate);
+            throw new NotImplementedException();
         }
 
         public void Update(Department entity)
         {
             try
             {
-                _repository.Update<Department>(entity);
+                db.Update(entity);
             }
-            catch (Exception)
+            catch (DbUpdateConcurrencyException)
             {
                 throw;
             }
+
         }
     }
 }

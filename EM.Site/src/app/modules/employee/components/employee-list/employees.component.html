@@ -1,0 +1,35 @@
+<header style="display: flex; justify-content: space-between; margin: 10px 0">
+  <h2>Employee List</h2>
+  <div>
+    <button routerLink="/employees/add" class="btn btn-outline-primary">New Employee</button>
+  </div>
+</header>
+<main>
+  <table class='table table-striped' aria-labelledby="tableLabel" *ngIf="employees" [hidden]="employees.length == 0">
+    <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">First Name</th>
+      <th scope="col">Last Name</th>
+      <th scope="col">Position</th>
+      <th scope="col">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let employee of employees">
+      <td>{{ employee.id }}</td>
+      <td>{{ employee.firstName }}</td>
+      <td>{{ employee.lastName }}</td>
+      <td>{{ employee.positionName }}</td>
+      <td style="width: 230px;">
+        <button routerLink="/employees/view/{{employee.id}}" class="btn btn-outline-success">View</button>
+        &nbsp;
+        <button routerLink="/employees/edit/{{employee.id}}" class="btn btn-outline-success">Edit</button>
+        &nbsp;
+        <button routerLink="/employees/edit/{{employee.id}}" class="btn btn-outline-danger">Delete</button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <div [hidden]="employees.length != 0">Loading</div>
+</main>

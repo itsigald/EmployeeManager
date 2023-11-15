@@ -1,0 +1,45 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* Provide sufficient contrast against white background */
+html {
+  height: 100%!important;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: #0366d6;
+}
+
+code {
+  color: #e01a76;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.actions-container {
+  width: 230px;
+}
+
+thead {
+  border-bottom: solid #000 3px;
+}
+
+tbody {
+  border: solid #000 1px;
+}
+
+header tbody {
+  border: none;
+}

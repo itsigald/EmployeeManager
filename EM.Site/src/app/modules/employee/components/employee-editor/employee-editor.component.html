@@ -1,0 +1,60 @@
+<header>
+  <h2>Edit Employee Form</h2>
+</header>
+<main>
+  <div class="container" *ngIf="model">
+    <form (ngSubmit)="onSubmit()" #editForm="ngForm" [hidden]="submitted">
+      <input type="hidden" name="id" value="{{model.id}}">
+
+      <div class="mb-3">
+        <label for="firstName">First Name</label>
+        <input type="text" class="form-control" id="firstName"
+               required
+               [(ngModel)]="model.firstName" name="firstName"
+               #firstName="ngModel">
+      </div>
+
+      <div class="mb-3">
+        <label for="lastName">Last Name</label>
+        <input type="text" class="form-control" id="lastName"
+               required [(ngModel)]="model.lastName" name="lastName" #lastName="ngModel">
+      </div>
+
+      <div class="mb-3">
+        <label for="position">Position</label>
+        <select class="form-select" aria-label="Default select example" id="position"
+                [(ngModel)]="model.position" name="position">
+          <option *ngFor="let positions of positions" [value]="positions.key">{{positions.value}}</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="department">Department</label>
+        <select class="form-select" aria-label="Default select example" id="department"
+                [(ngModel)]="model.departmentId" name="departmentId">
+          <option *ngFor="let department of departments" [value]="department.id">{{department.name}}</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="managerId">Manager</label>
+        <select class="form-select" aria-label="Default select example" id="managerId"
+                [(ngModel)]="model.managerId" name="managerId">
+          <option *ngFor="let employee of employees" [value]="employee.id" [selected]="employee.id == model.managerId">{{employee.firstName}} {{employee.lastName}}</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <a class="btn btn-outline-secondary" routerLink="/employees">Cancel</a>
+        &nbsp;
+        <button type="submit" class="btn btn-outline-primary" [disabled]="!editForm.form.valid">Submit</button>
+      </div>
+    </form>
+  </div>
+  <div *ngIf="!model">Loadin</div>
+</main>
+<footer [hidden]="!submitted">
+  <button routerLink="/employees">Back</button>
+  <button (click)="addAnother()">Add Employee</button>
+</footer>
+

@@ -1,0 +1,162 @@
+<header>
+  <table style="border-spacing: 10px">
+    <tbody>
+    <tr>
+      <td rowspan="5" style="width: 200px">
+        <img src="assets/images/image-placeholder.png" width="150" style="margin: 25px">
+      </td>
+      <td class="label-cell">Name:</td>
+      <td colspan="2">{{model.firstName}} {{model.lastName}}</td>
+    </tr>
+    <tr>
+      <td class="label-cell">Position:</td>
+      <td colspan="2">{{model.positionName}}</td>
+    </tr>
+    <tr>
+      <td class="label-cell">Department:</td>
+      <td colspan="2">{{model.departmentName}}</td>
+    </tr>
+    <tr>
+      <td colspan="3">
+        <hr>
+      </td>
+    </tr>
+    <tr *ngIf="model.managerId !== 0">
+      <td class="label-cell">Manager:</td>
+      <td>{{model.managerName}}</td>
+      <td>
+        <button class="btn btn-outline-primary" (click)="report()">Report</button>
+      </td>
+    </tr>
+    <tr *ngIf="model.managerId === 0">
+      <td colspan="3">No manager to report</td>
+    </tr>
+    </tbody>
+  </table>
+</header>
+
+<main class="flex-container">
+  <div style="margin-top: 25px">
+    <h5>
+      My Tasks:
+    </h5>
+    <table class='table table-striped' aria-labelledby="tableLabel" *ngIf="model.tasks"
+           [hidden]="model.tasks.length === 0">
+      <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">Due Date</th>
+        <th scope="col">Assign Date</th>
+        <th scope="col">Status</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let task of model.tasks; let idx=index;">
+        <td>{{ idx + 1 }}</td>
+        <td>{{ task.text }}</td>
+        <td>{{ task.dueDate | date }}</td>
+        <td>{{ task.assignDate | date }}</td>
+        <td class="actions-container">
+          <select class="form-select" aria-label="Default select example" id="position"
+                  [(ngModel)]="task.status" name="position">
+            <option value="0">N/A</option>
+            <option value="1">New</option>
+            <option value="2">Ready For Dev</option>
+            <option value="3">In Progress</option>
+            <option value="4">Closed</option>
+          </select>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div [hidden]="model.tasks && model.tasks.length !== 0">No takes was assigned to you yet</div>
+
+  <div [hidden]="model.subordinates && model.subordinates.length === 0" style="margin-top: 25px">
+    <h5>
+      My Subordinates:
+    </h5>
+    <table class='table table-striped' aria-labelledby="tableLabel" *ngIf="model.subordinates">
+      <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">First Name</th>
+        <th scope="col">Last Name</th>
+        <th scope="col">Position</th>
+        <th scope="col">Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let subordinate of model.subordinates; let idx=index;">
+        <td>{{ idx + 1 }}</td>
+        <td>{{ subordinate.firstName }}</td>
+        <td>{{ subordinate.lastName }}</td>
+        <td>{{ subordinate.positionName }}</td>
+        <td class="actions-container">
+          <button class="btn btn-outline-success" (click)="assignTask(subordinate)">Assign Task</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<footer style="margin-bottom: 50px">
+  <button routerLink="/employees" class="btn btn-outline-success">Back</button>
+</footer>
+
+<!--<ng-template #reportContent let-modal>-->
+<!--  <div class="modal-header">-->
+<!--    <h4 class="modal-title" id="modal-report-title">Report To Manager</h4>-->
+<!--    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>-->
+<!--  </div>-->
+<!--  <div class="modal-body">-->
+<!--    <form>-->
+<!--      <div class="mb-3">-->
+<!--        <label for="report-text">Report Text</label>-->
+<!--        <div class="input-group">-->
+<!--          <textarea id="report-text" class="form-control" rows="4" cols="50" #reportInput></textarea>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </form>-->
+<!--  </div>-->
+<!--  <div class="modal-footer">-->
+<!--    <button type="button" class="btn btn-outline-dark" (click)="modal.dismiss()">Cancel</button>-->
+<!--    <button type="button" class="btn btn-outline-dark" (click)="modal.close()">Save</button>-->
+<!--  </div>-->
+<!--</ng-template>-->
+
+<!--<ng-template #assignContent let-modal>-->
+<!--  <div class="modal-header">-->
+<!--    <h4 class="modal-title" id="modal-assign-title">Assign Task</h4>-->
+<!--    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>-->
+<!--  </div>-->
+<!--  <div class="modal-body">-->
+<!--    <form>-->
+<!--      <div class="mb-3">-->
+<!--        <label for="task-text">Text</label>-->
+<!--        <div class="input-group">-->
+<!--          <textarea id="task-text" class="form-control" rows="4" cols="50"></textarea>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--      <div class="mb-3">-->
+<!--        <label for="dueDate">Due Date</label>-->
+<!--        <div class="input-group">-->
+<!--          <input-->
+<!--            id="dueDate"-->
+<!--            class="form-control"-->
+<!--            placeholder="yyyy-mm-dd"-->
+<!--            name="dp"-->
+<!--            ngbDatepicker-->
+<!--            #dp="ngbDatepicker"-->
+<!--          />-->
+<!--          <button class="btn btn-outline-secondary bi bi-calendar3" (click)="dp.toggle()" type="button"></button>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </form>-->
+<!--  </div>-->
+<!--  <div class="modal-footer">-->
+<!--    <button type="button" class="btn btn-outline-dark" (click)="modal.close('Save click')">Save</button>-->
+<!--  </div>-->
+<!--</ng-template>-->

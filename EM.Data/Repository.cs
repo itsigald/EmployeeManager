@@ -3,66 +3,81 @@ using EM.Domain.Enums;
 using EM.Domain.General;
 using EM.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using OperationStatus = EM.Domain.General.OperationStatus;
 
 namespace EM.Data
 {
-    public class Repository<R> : IDisposable, IRepository<R> where R : DbContext, new()
+    public class Repository<C> : IDisposable, IRepository<C> where C : EMContext, new()
     {
-        private R? dataContext;
+        private C? dataContext;
 
-        private static readonly object addEntityObject = new object();
+        //private static object addEntityObject = new();
 
-        public virtual R DataContext
+        private readonly IConfiguration _config;
+
+        public Repository(IConfiguration config)
         {
-            get 
-            {
-                if(dataContext == null)
-                    dataContext = new R();
+            _config = config;
+        }
 
-                return dataContext; 
+        public virtual C DataContext
+        {
+            get
+            {
+                if (dataContext == null)
+                {
+                    dataContext = new C
+                    {
+                        ConnectionString = _config.GetConnectionString("default")
+                    };
+                }
+
+                return dataContext;
             }
         }
 
-        public virtual void Add<T>(T entity) where T : class
+        public void Add<T>(T entity) where T : class
         {
             DataContext.Set<T>().Add(entity);
         }
 
-        public virtual void Add<T>(Expression<Func<T, bool>> predicate) where T : class
+        public bool Any<T>(Expression<Func<T, bool>> predicate) where T : class
         {
-            throw new NotImplementedException();
+            return DataContext.Set<T>().Any(predicate);
         }
 
-        public virtual int Count<T>(Expression<Func<T, bool>> predicate) where T : class
+        public int Count<T>(Expression<Func<T, bool>> predicate) where T : class
         {
             return DataContext.Set<T>().Count(predicate);
         }
 
-        public virtual T? Get<T>(Expression<Func<T, bool>> predicate) where T : class
+        public T? Get<T>(Expression<Func<T, bool>> predicate) where T : class
         {
-            return DataContext.Set<T>().Where(predicate).SingleOrDefault();
+            return DataContext.Set<T>().Where(predicate).SingleOrDefault(); 
         }
 
-        public virtual IQueryable<T> GetList<T>(Expression<Func<T, bool>> predicate) where T : class
+        public IQueryable<T> GetList<T>(Expression<Func<T, bool>> predicate) where T : class
         {
             return DataContext.Set<T>().Where(predicate);
         }
 
-        public virtual IQueryable<T> GetList<T, TKey>(Expression<Func<T, bool>> predicate, Expression<Func<T, TKey>> orderBy) where T : class
+        public IQueryable<T> GetList<T, TKey>(Expression<Func<T, bool>> predicate, Expression<Func<T, TKey>> orderBy) where T : class
         {
             return GetList(predicate, OrderByType.Ascending, orderBy);
         }
 
-        public virtual IQueryable<T> GetList<T, TKey>(Expression<Func<T, bool>> predicate, OrderByType orderByType, Expression<Func<T, TKey>> orderBy) where T : class
+        public IQueryable<T> GetList<T, TKey>(Expression<Func<T, bool>> predicate, OrderByType orderByType, Expression<Func<T, TKey>> orderBy) where T : class
         {
-            if(orderByType == OrderByType.Ascending)
+            if (orderByType == OrderByType.Ascending)
             {
                 return GetList(predicate).OrderBy(orderBy);
             }
@@ -72,34 +87,38 @@ namespace EM.Data
             }
         }
 
-        public virtual IQueryable<T> GetList<T, TKey>(Expression<Func<T, TKey>> orderBy) where T : class
+        public IQueryable<T> GetList<T, TKey>(Expression<Func<T, TKey>> orderBy) where T : class
         {
             return GetList<T, TKey>(OrderByType.Ascending, orderBy);
         }
 
-        public virtual IQueryable<T> GetList<T, TKey>(OrderByType orderByType, Expression<Func<T, TKey>> orderBy) where T : class
+        public IQueryable<T> GetList<T, TKey>(OrderByType orderByType, Expression<Func<T, TKey>> orderBy) where T : class
         {
             if (orderByType == OrderByType.Ascending)
+            {
                 return GetList<T>().OrderBy(orderBy);
+            }
             else
-                return GetList<T>().OrderByDescending(orderBy);
+            {
+                return GetList<T>().OrderBy(orderBy);
+            }
         }
 
-        public virtual IQueryable<T> GetList<T>() where T : class
+        public IQueryable<T> GetList<T>() where T : class
         {
             return DataContext.Set<T>();
         }
 
-        public virtual void Update<T>(T entity) where T : BaseEntity
+        public void Update<T>(T entity) where T : BaseEntity
         {
             var entry = DataContext.Entry<T>(entity);
 
-            if(entry.State == EntityState.Detached)
+            if (entry.State == EntityState.Detached)
             {
                 var set = DataContext.Set<T>();
                 T? attachedEntity = set.Find(entity.Id);
 
-                if(attachedEntity != null)
+                if (attachedEntity != null)
                 {
                     var attachedEntry = DataContext.Entry(attachedEntity);
                     attachedEntry.CurrentValues.SetValues(entity);
@@ -111,16 +130,16 @@ namespace EM.Data
             }
         }
 
-        public virtual void Delete<T>(T entity) where T : class
+        public void Delete<T>(T entity) where T : class
         {
             DataContext.Set<T>().Remove(entity);
         }
 
-        public virtual void Delete<T>(Expression<Func<T, bool>> predicate) where T : class
+        public void Delete<T>(Expression<Func<T, bool>> predicate) where T : class
         {
-            T? entity = this.Get<T>(predicate);
+            T? entity = Get<T>(predicate);
 
-            if(entity != null)
+            if (entity != null)
             {
                 this.Delete<T>(entity);
             }
@@ -128,13 +147,10 @@ namespace EM.Data
 
         public async Task DeleteAsync<T>(T entity) where T : class
         {
-            await Task.Run(() =>
-            {
-                Delete<T>(entity);
-            });
+            await System.Threading.Tasks.Task.Run(() => Delete<T>(entity));
         }
 
-        public virtual void DeleteAll<T>(ICollection<T> collection) where T : class
+        public void DeleteAll<T>(ICollection<T> collection) where T : class
         {
             DbSet<T> dbSet = DataContext.Set<T>();
             collection.ToList<T>().ForEach(x => dbSet.Remove(x));
@@ -142,13 +158,10 @@ namespace EM.Data
 
         public async Task DeleteAllAsync<T>(ICollection<T> collection) where T : class
         {
-            await Task.Run(() =>
-            {
-                DeleteAll<T>(collection);
-            });
+            await System.Threading.Tasks.Task.Run(() => DeleteAll(collection));
         }
 
-        public virtual OperationStatus Save(string message)
+        public OperationStatus Save(string? message = null)
         {
             OperationStatus operationStatus = new();
 
@@ -167,7 +180,7 @@ namespace EM.Data
             return operationStatus;
         }
 
-        public async Task<OperationStatus> SaveAync(string message)
+        public async Task<OperationStatus> SaveAync(string? message = null)
         {
             OperationStatus operationStatus = new();
 
@@ -175,11 +188,11 @@ namespace EM.Data
             {
                 await DataContext.SaveChangesAsync();
             }
-            catch (DbUpdateException e)
+            catch (Exception exception)
             {
                 operationStatus.Status = false;
                 operationStatus.Message = message;
-                operationStatus.Exception = e;
+                operationStatus.Exception = exception;
                 return operationStatus;
             }
 
@@ -188,10 +201,7 @@ namespace EM.Data
 
         public void Dispose()
         {
-            if (DataContext != null)
-            {
-                DataContext.Dispose();
-            }
+            DataContext?.Dispose();
         }
     }
 }

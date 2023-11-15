@@ -1,4 +1,5 @@
 ﻿using EM.Domain.Enums;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 namespace EM.Domain.Entities
 {
     [Table("tasks")]
-    public class Job : BaseEntity
+    public class Job: BaseEntity
     {
         [Column("text")]
         [Required]
@@ -24,14 +25,15 @@ namespace EM.Domain.Entities
         [Column("assign_date")]
         [DataType(DataType.DateTime)]
         [Required]
-        public DateTime AssignDate { get; set; } = DateTime.Now;
+        public DateTime AssignedDate { get; set; } = DateTime.Now;
 
         [Column("status")]
         [Required]
         public TaskStatusType Status { get; set; } = TaskStatusType.NONE;
 
         [Column("employee_id")]
-        public long? EmployeeId { get; set; } = default(long?);
+        public long? EmployeeID { get; set; } = default;
         public virtual Employee? Employee { get; set; }
+
     }
 }
